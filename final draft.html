@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Update: Magic Found</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Cinzel+Decorative:wght@400;700&family=Share+Tech+Mono&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            margin: 0; 
+            overflow-x: hidden; 
+            background-color: #050505; 
+            color: white; 
+            font-family: 'Share Tech Mono', monospace;
+            transition: background-color 1s ease;
+        }
+
+        body.magic-mode {
+            background: linear-gradient(135deg, #2d1b4e 0%, #4a1942 50%, #1a0a2e 100%);
+        }
+
+        .font-scifi { font-family: 'Orbitron', sans-serif; letter-spacing: 2px; }
+        .font-fairy { font-family: 'Cinzel Decorative', cursive; letter-spacing: 1px; }
+        .font-romantic { font-family: 'Playfair Display', serif; }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            transition: opacity 1s ease;
+        }
+
+        #canvas-container.fade-out {
+            opacity: 0;
+        }
+
+        /* Disney Magic Background */
+        #disney-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            opacity: 0;
+            background: radial-gradient(ellipse at top, #4a1942, #1a0a2e);
+            transition: opacity 1s ease;
+        }
+
+        #disney-bg.active {
+            opacity: 1;
+        }
+
+        /* Floating Disney Sparkles */
+        .disney-sparkle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #ffd700 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: disney-float 6s ease-in-out infinite;
+            box-shadow: 0 0 20px #ffd700;
+        }
+
+        @keyframes disney-float {
+            0%, 100% { 
+                transform: translateY(0) scale(1);
+                opacity: 0;
+            }
+            25% {
+                opacity: 1;
+            }
+            50% { 
+                transform: translateY(-100px) scale(1.5);
+                opacity: 1;
+            }
+            75% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Storybook Pages */
+        .storybook-page {
+            background: linear-gradient(135deg, rgba(255, 248, 220, 0.95), rgba(255, 239, 213, 0.95));
+            border: 3px solid #d4af37;
+            border-radius: 20px;
+            box-shadow: 
+                0 10px 50px rgba(212, 175, 55, 0.4),
+                inset 0 0 30px rgba(255, 215, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .storybook-page::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(139, 90, 43, 0.03) 2px,
+                    rgba(139, 90, 43, 0.03) 4px
+                );
+            pointer-events: none;
+        }
+
+        /* Magical Text Glow */
+        .magic-glow {
+            text-shadow: 
+                0 0 10px rgba(255, 215, 0, 0.8),
+                0 0 20px rgba(255, 192, 203, 0.6),
+                0 0 30px rgba(138, 43, 226, 0.4);
+            animation: glow-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes glow-pulse {
+            0%, 100% { 
+                text-shadow: 
+                    0 0 10px rgba(255, 215, 0, 0.8),
+                    0 0 20px rgba(255, 192, 203, 0.6),
+                    0 0 30px rgba(138, 43, 226, 0.4);
+            }
+            50% { 
+                text-shadow: 
+                    0 0 20px rgba(255, 215, 0, 1),
+                    0 0 40px rgba(255, 192, 203, 0.8),
+                    0 0 60px rgba(138, 43, 226, 0.6);
+            }
+        }
+
+        /* Enchanted Border */
+        .enchanted-border {
+            border: 3px solid transparent;
+            background: 
+                linear-gradient(rgba(26, 10, 46, 0.9), rgba(26, 10, 46, 0.9)) padding-box,
+                linear-gradient(45deg, #ffd700, #ff69b4, #9370db, #ffd700) border-box;
+            border-radius: 20px;
+        }
+
+        /* Parallax Layers */
+        .parallax-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .parallax-front { transform: translateZ(50px) scale(0.95); }
+        .parallax-mid { transform: translateZ(0); }
+        .parallax-back { transform: translateZ(-50px) scale(1.05); }
+
+        /* Cursor Sparkle Trail */
+        .cursor-sparkle {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background: radial-gradient(circle, #ffd700, transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: cursor-fade 1s ease-out forwards;
+            z-index: 9999;
+        }
+
+        @keyframes cursor-fade {
+            0% { 
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* Falling Rose Petals */
+        .rose-petal {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(ellipse at top left, #ff69b4, #ff1493);
+            border-radius: 50% 0 50% 0;
+            opacity: 0.7;
+            animation: petal-fall linear forwards;
+            pointer-events: none;
+        }
+
+        @keyframes petal-fall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Fireflies */
+        .firefly {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 1), rgba(255, 215, 0, 0));
+            border-radius: 50%;
+            box-shadow: 0 0 15px #ffd700;
+            animation: firefly-float 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes firefly-float {
+            0%, 100% {
+                transform: translate(0, 0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            50% {
+                transform: translate(100px, -150px);
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+        }
+
+        /* Page Turn Effect */
+        .page-turn {
+            transform-style: preserve-3d;
+            transition: transform 1s ease;
+        }
+
+        .page-turn:hover {
+            transform: rotateY(-5deg);
+        }
+
+        /* Typewriter Effect */
+        .typewriter {
+            overflow: hidden;
+            border-right: 2px solid #ffd700;
+            white-space: nowrap;
+            animation: typing 3s steps(40) forwards, blink 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink {
+            50% { border-color: transparent; }
+        }
+
+        /* Gradient Text Animation */
+        .gradient-text {
+            background: linear-gradient(45deg, #ffd700, #ff69b4, #9370db, #00f3ff);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-shift 5s ease infinite;
+        }
+
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Polaroid Frame */
+        .polaroid {
+            background: #fff;
+            padding: 15px 15px 50px 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            transform: rotate(-2deg);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .polaroid:hover {
+            transform: rotate(0deg) scale(1.05) translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            z-index: 10;
+        }
+
+        .polaroid::after {
+            content: attr(data-caption);
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-family: 'Permanent Marker', cursive;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .polaroid:nth-child(even) {
+            transform: rotate(2deg);
+        }
+
+        /* Heart-shaped Image Mask */
+        .heart-mask {
+            clip-path: path('M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z');
+            transform: scale(8);
+        }
+
+        /* Breathing Animation */
+        .breathing {
+            animation: breathe 4s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Magnetic Button */
+        .magnetic-btn {
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+        }
+
+        .magnetic-btn::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(45deg, #ffd700, #ff69b4, #9370db);
+            border-radius: inherit;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -1;
+            filter: blur(10px);
+        }
+
+        .magnetic-btn:hover::before {
+            opacity: 1;
+        }
+
+        /* Liquid Morph Transition */
+        .liquid-morph {
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            animation: morph 8s ease-in-out infinite;
+        }
+
+        @keyframes morph {
+            0%, 100% {
+                border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            }
+            50% {
+                border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+            }
+        }
+
+        /* Glass Morphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        /* Photo Caption Reveal */
+        .photo-caption-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .photo-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+            color: white;
+            padding: 20px;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .photo-caption-wrapper:hover .photo-caption {
+            transform: translateY(0);
+        }
+
+        /* 3D Text Shadow */
+        .text-3d {
+            text-shadow: 
+                1px 1px 0px #d4af37,
+                2px 2px 0px #c9a428,
+                3px 3px 0px #be991a,
+                4px 4px 0px #b38e0b,
+                5px 5px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Hidden Message Reveal */
+        .secret-message {
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .secret-message.revealed {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Ink Writing Animation */
+        @keyframes ink-write {
+            0% {
+                stroke-dashoffset: 1000;
+            }
+            100% {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        .ink-path {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: ink-write 3s ease-out forwards;
+        }
+
+        /* Shimmer Effect */
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shimmer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer-slide 3s infinite;
+        }
+
+        @keyframes shimmer-slide {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Click Ripple Effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 215, 0, 0.6);
+            transform: scale(0);
+            animation: ripple-effect 0.6s ease-out;
+        }
+
+        @keyframes ripple-effect {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Disney Castle Silhouette */
+        .castle-bg {
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400"><path fill="%23d4af37" opacity="0.1" d="M0,400 L0,300 L100,250 L150,280 L200,220 L250,250 L300,200 L400,240 L450,180 L550,220 L600,150 L650,200 L750,180 L800,220 L850,200 L950,240 L1000,200 L1100,250 L1200,220 L1200,400 Z"/></svg>') no-repeat bottom center;
+            background-size: 100% auto;
+        }
+
+        /* Love Notes */
+        .love-note {
+            background: linear-gradient(135deg, #fff5f7 0%, #ffe5ec 100%);
+            border-left: 4px solid #ff69b4;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.2);
+            position: relative;
+            transform: rotate(-1deg);
+            transition: all 0.3s ease;
+        }
+
+        .love-note:hover {
+            transform: rotate(0deg) scale(1.05);
+            box-shadow: 0 8px 30px rgba(255, 105, 180, 0.4);
+        }
+
+        .love-note::before {
+            content: '💕';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 2rem;
+        }
+
+        .scroll-section {
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 2rem;
+        }
+
+        .hud-box {
+            border: 1px solid rgba(0, 243, 255, 0.5);
+            background: rgba(0, 10, 20, 0.8);
+            backdrop-filter: blur(4px);
+        }
+
+        .fairy-box {
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            background: rgba(40, 20, 10, 0.6);
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+        }
+
+        .photo-frame {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.7s ease;
+        }
+
+        .photo-frame:hover img {
+            transform: scale(1.1);
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ffd700;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkle-float 3s ease-in-out infinite;
+        }
+
+        @keyframes sparkle-float {
+            0%, 100% { transform: translateY(0) scale(1); opacity: 0; }
+            50% { transform: translateY(-20px) scale(1.5); opacity: 1; }
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #00f3ff; border-radius: 4px; transition: background 0.3s; }
+        ::-webkit-scrollbar-thumb:hover { background: #ffd700; }
+        
+        #preloader {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .timeline-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 3px solid #00f3ff;
+            background: #000;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-dot.active {
+            border-color: #ffd700;
+            background: #ffd700;
+            box-shadow: 0 0 20px #ffd700;
+        }
+
+        .memory-card {
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.1) 0%, rgba(255, 215, 0, 0.1) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.5s ease;
+        }
+
+        .memory-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(255, 215, 0, 0.3);
+            border-color: rgba(255, 215, 0, 0.5);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .floating { animation: float 6s ease-in-out infinite; }
+
+        .grid-overlay {
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <!-- Background containers required by JS (sparkles, petals, fireflies, parallax layers) -->
+    <div id="disney-bg"></div>
+    <div id="sparkles-bg" style="position:fixed;inset:0;pointer-events:none;z-index:0;"></div>
+    <div id="rose-petals-container" style="position:fixed;inset:0;pointer-events:none;z-index:0;"></div>
+    <div id="fireflies-container" style="position:fixed;inset:0;pointer-events:none;z-index:0;"></div>
+
+    <!-- Parallax layers used when magic mode is active -->
+    <div id="parallax-back" class="parallax-layer"></div>
+    <div id="parallax-mid" class="parallax-layer"></div>
+    <div id="parallax-front" class="parallax-layer"></div>
+
+    <!-- Hidden secret button & message (used by JS ripple / reveal) -->
+    <button id="secret-btn" style="position:fixed;bottom:1rem;left:1rem;opacity:0;pointer-events:none;">Secret</button>
+    <div id="secret-msg" class="secret-message" aria-hidden="true" style="position:fixed;bottom:4rem;left:1rem;opacity:0;pointer-events:none;">✨ You found the secret ✨</div>
+
+    <div id="preloader">
+        <div class="font-scifi text-2xl text-[#00f3ff] mb-4">INITIALIZING LOVE PROTOCOL</div>
+        <div class="w-64 h-1 bg-gray-800 rounded overflow-hidden">
+            <div class="h-full bg-[#00f3ff]" style="width: 0%; transition: width 2s ease-out;" id="loader-bar"></div>
+        </div>
+        <div class="font-mono text-xs text-gray-500 mt-2">Loading 5 Years of Memories...</div>
+    </div>
+
+    <div class="fixed inset-0 pointer-events-none z-10 p-4 md:p-8 flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+            <div class="hud-box p-2 px-4 rounded-tl-xl">
+                <div class="text-[10px] text-gray-400">OPERATOR</div>
+                <div class="font-scifi text-sm text-[#00f3ff]">JARVIS</div>
+            </div>
+            <div class="hud-box p-2 px-4 rounded-tr-xl opacity-0" id="top-right-hud">
+                <div class="text-[10px] text-gray-400">TARGET</div>
+                <div class="font-fairy text-lg text-[#ffd700]">My Rasmalai</div>
+            </div>
+        </div>
+        
+        <div class="flex justify-between items-end">
+            <div class="hud-box p-2 px-4 rounded-bl-xl">
+                <div class="text-[10px] text-gray-400">DURATION</div>
+                <div class="font-mono text-xs text-white">5 YEARS</div>
+            </div>
+            <div class="hud-box p-2 px-4 rounded-br-xl">
+                <div class="text-[10px] text-gray-400">STATUS</div>
+                <div class="font-scifi text-xs text-green-400" id="status-text">SCANNING</div>
+            </div>
+        </div>
+    </div>
+
+    <main id="content-wrapper" class="relative z-20">
+        
+        <!-- SECTION 1: THE LOGIC -->
+        <section class="scroll-section" id="sec1">
+            <div class="grid-overlay"></div>
+            <div class="text-center relative">
+                <h1 class="font-scifi text-6xl md:text-8xl font-bold text-white mb-2 mix-blend-screen glitch-effect">LOGIC</h1>
+                <p class="font-mono text-[#00f3ff] text-sm tracking-widest uppercase">System Normal. <br>No Emotions Detected.</p>
+                <div class="absolute -left-20 top-1/2 w-16 h-[1px] bg-[#00f3ff]"></div>
+                <div class="absolute -right-20 top-1/2 w-16 h-[1px] bg-[#00f3ff]"></div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: THE ANOMALY -->
+        <section class="scroll-section" id="sec2">
+            <div class="grid grid-cols-1 md:grid-cols-2 w-full max-w-6xl gap-12 items-center">
+                <div class="text-left md:text-right opacity-0 sec2-content">
+                    <div class="inline-block bg-red-900/30 border border-red-500/50 px-2 py-1 text-red-400 text-xs font-mono mb-4">
+                        ⚠ ALERT: ANOMALY DETECTED
+                    </div>
+                    <h2 class="font-scifi text-4xl text-white mb-4">UNIDENTIFIED<br>VARIABLE</h2>
+                    <p class="text-gray-400 text-sm font-mono max-w-sm md:ml-auto">
+                        A foreign object entered the system. It defied logic. It was chaotic. It was beautiful.
+                    </p>
+                </div>
+                <div class="relative h-64 w-64 mx-auto md:mx-0 sec2-img opacity-0">
+                    <div class="absolute inset-0 border-2 border-[#00f3ff] border-dashed rounded-full animate-[spin_10s_linear_infinite]"></div>
+                    <div class="absolute inset-2 rounded-full overflow-hidden border border-[#ffd700] shadow-[0_0_30px_#ffd700]">
+                        <img src="goofy.jpeg" class="w-full h-full object-cover hover:scale-110 transition duration-700" alt="First Meeting">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: THE INFECTION -->
+        <section class="scroll-section" id="sec3">
+            <div class="relative text-center z-10">
+                <div class="absolute inset-0 flex items-center justify-center -z-10 opacity-20">
+                    <svg width="600" height="600" viewBox="0 0 600 600" fill="none" class="animate-spin" style="animation-duration: 20s;">
+                        <circle cx="300" cy="300" r="250" stroke="#00f3ff" stroke-width="1" stroke-dasharray="10 10"/>
+                        <circle cx="300" cy="300" r="200" stroke="#ffd700" stroke-width="2"/>
+                    </svg>
+                </div>
+
+                <h2 class="font-fairy text-5xl md:text-6xl text-[#ffd700] mb-6 opacity-0 sec3-title">Rewriting Code...</h2>
+                <p class="text-white max-w-xl mx-auto text-lg font-light opacity-0 sec3-text">
+                    You didn't just fit into my world. You rewrote the whole journey. <br>
+                    <span class="text-[#00f3ff]">Logic</span> became <span class="text-[#ffd700] font-fairy">Love</span>.
+                    <span class="text-[#00f3ff]">Data</span> became <span class="text-[#ffd700] font-fairy">Memories</span>.
+                </p>
+                
+                <div class="mt-12 grid grid-cols-3 gap-4 max-w-2xl mx-auto opacity-0 sec3-imgs">
+                    <div class="photo-frame h-32">
+                        <img src="garba.jpeg" class="w-full h-full object-cover" alt="Memory 1">
+                    </div>
+                    <div class="photo-frame h-32">
+                        <img src="side eye.jpeg" alt="Memory 2">
+                    </div>
+                    <div class="photo-frame h-32">
+                        <img src="kava lake.jpeg" alt="Memory 3">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: MEMORY TIMELINE - TWO WORLDS COLLIDING -->
+        <section class="scroll-section" id="sec4" style="min-height: 400vh;">
+            <!-- Fullscreen Background Media Container -->
+            <div id="timeline-bg-container" class="fixed inset-0 w-full h-screen overflow-hidden" style="z-index: 1;">
+                <!-- Split Screen Effect: Tech Side & Magic Side -->
+                <div id="tech-side" class="absolute inset-0 bg-gradient-to-r from-[#001a2e] to-transparent opacity-100 transition-opacity duration-1000"></div>
+                <div id="magic-side" class="absolute inset-0 bg-gradient-to-l from-[#2e1a00] to-transparent opacity-0 transition-opacity duration-1000"></div>
+                
+                <!-- Background Images/Videos that change on scroll -->
+                <div id="timeline-media" class="absolute inset-0 flex items-center justify-center">
+                    <img id="timeline-img-1" class="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000" src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=1920&auto=format&fit=crop" alt="Year 1 Memory">
+                    <img id="timeline-img-2" class="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000" src="eyes.jpeg" alt="Year 2 Memory">
+                    <img id="timeline-img-3" class="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000" src="sassy.jpeg" alt="Year 3 Memory">
+                    <img id="timeline-img-4" class="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000" src="rose 2.jpeg" alt="Year 4 Memory">
+                    <img id="timeline-img-5" class="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000" src="https://images.unsplash.com/photo-1522673607200-1645062cd495?q=80&w=1920&auto=format&fit=crop" alt="Year 5 Memory">
+                </div>
+                
+                <!-- Overlay for blend effect -->
+                <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60"></div>
+                
+                <!-- Animated Hearts & Circuit Lines -->
+                <svg id="blend-overlay" class="absolute inset-0 w-full h-full pointer-events-none" style="mix-blend-mode: screen;">
+                    <!-- Left side: Circuit lines (tech) -->
+                    <g id="circuit-lines" opacity="0.3">
+                        <line x1="10%" y1="20%" x2="40%" y2="20%" stroke="#00f3ff" stroke-width="2" stroke-dasharray="5,5">
+                            <animate attributeName="x2" from="10%" to="40%" dur="3s" repeatCount="indefinite"/>
+                        </line>
+                        <line x1="15%" y1="50%" x2="35%" y2="50%" stroke="#00f3ff" stroke-width="2" stroke-dasharray="5,5">
+                            <animate attributeName="x2" from="15%" to="35%" dur="2.5s" repeatCount="indefinite"/>
+                        </line>
+                        <line x1="10%" y1="80%" x2="40%" y2="80%" stroke="#00f3ff" stroke-width="2" stroke-dasharray="5,5">
+                            <animate attributeName="x2" from="10%" to="40%" dur="3.5s" repeatCount="indefinite"/>
+                        </line>
+                    </g>
+                    
+                    <!-- Right side: Floating hearts (magic) -->
+                    <g id="heart-particles" opacity="0">
+                        <path d="M60,30 L62,28 C63,27 65,27 66,28 C67,29 67,30 66,31 L60,37 L54,31 C53,30 53,29 54,28 C55,27 57,27 58,28 L60,30" fill="#ffd700" transform="translate(900, 100)">
+                            <animateTransform attributeName="transform" type="translate" values="900,100; 920,80; 900,100" dur="4s" repeatCount="indefinite"/>
+                        </path>
+                        <path d="M60,30 L62,28 C63,27 65,27 66,28 C67,29 67,30 66,31 L60,37 L54,31 C53,30 53,29 54,28 C55,27 57,27 58,28 L60,30" fill="#ff69b4" transform="translate(1100, 300) scale(0.8)">
+                            <animateTransform attributeName="transform" type="translate" values="1100,300; 1120,260; 1100,300" dur="5s" repeatCount="indefinite"/>
+                        </path>
+                        <path d="M60,30 L62,28 C63,27 65,27 66,28 C67,29 67,30 66,31 L60,37 L54,31 C53,30 53,29 54,28 C55,27 57,27 58,28 L60,30" fill="#ffd700" transform="translate(950, 500) scale(1.2)">
+                            <animateTransform attributeName="transform" type="translate" values="950,500; 970,450; 950,500" dur="4.5s" repeatCount="indefinite"/>
+                        </path>
+                    </g>
+                </svg>
+            </div>
+
+            <!-- Foreground Content -->
+            <div class="relative max-w-4xl mx-auto w-full" style="z-index: 2;">
+                <!-- Title -->
+                <div class="sticky top-1/4 mb-[100vh]">
+                    <h2 class="text-center mb-8 opacity-0 sec4-title">
+                        <div class="font-scifi text-[#00f3ff] text-2xl mb-2 sec4-tech-text">TWO WORLDS</div>
+                        <div class="font-fairy text-[#ffd700] text-5xl md:text-6xl sec4-magic-text" style="opacity: 0;">ONE LOVE</div>
+                    </h2>
+                    <p class="text-center text-gray-300 text-lg font-romantic max-w-2xl mx-auto opacity-0 sec4-subtitle">
+                        Where logic met magic, and two souls became one
+                    </p>
+                </div>
+
+                <!-- Timeline Cards - Each triggers on scroll -->
+                <div class="space-y-[100vh]">
+                    <!-- Year 1 -->
+                    <div class="year-card opacity-0" data-year="1">
+                        <div class="glass-panel bg-black/40 backdrop-blur-md border border-[#00f3ff]/30 rounded-2xl p-8 md:p-12 shadow-2xl">
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-12 h-12 rounded-full border-4 border-[#00f3ff] flex items-center justify-center font-bold text-[#00f3ff]">1</div>
+                                <div>
+                                    <div class="font-scifi text-[#00f3ff] text-sm tracking-widest">YEAR 01</div>
+                                    <h3 class="font-fairy text-3xl text-white">The Beginning</h3>
+                                </div>
+                            </div>
+                            <p class="text-gray-300 text-lg leading-relaxed font-romantic">
+                                When the universe aligned and two souls found each other in the chaos. A spark ignited that would change everything.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Year 2 -->
+                    <div class="year-card opacity-0" data-year="2">
+                        <div class="glass-panel bg-black/40 backdrop-blur-md border border-purple-400/30 rounded-2xl p-8 md:p-12 shadow-2xl">
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-12 h-12 rounded-full border-4 border-purple-400 flex items-center justify-center font-bold text-purple-400">2</div>
+                                <div>
+                                    <div class="font-scifi text-purple-400 text-sm tracking-widest">YEAR 02</div>
+                                    <h3 class="font-fairy text-3xl text-white">Growing Together</h3>
+                                </div>
+                            </div>
+                            <p class="text-gray-300 text-lg leading-relaxed font-romantic">
+                                Adventures, laughter, and building our own little world. Every moment a new memory, every day a deeper connection.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Year 3 -->
+                    <div class="year-card opacity-0" data-year="3">
+                        <div class="glass-panel bg-black/40 backdrop-blur-md border border-pink-400/30 rounded-2xl p-8 md:p-12 shadow-2xl">
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-12 h-12 rounded-full border-4 border-pink-400 flex items-center justify-center font-bold text-pink-400">3</div>
+                                <div>
+                                    <div class="font-scifi text-pink-400 text-sm tracking-widest">YEAR 03</div>
+                                    <h3 class="font-fairy text-3xl text-white">Deeper Bonds</h3>
+                                </div>
+                            </div>
+                            <p class="text-gray-300 text-lg leading-relaxed font-romantic">
+                                Through every challenge, our love only grew stronger. You became my anchor, my home, my everything.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Year 4 -->
+                    <div class="year-card opacity-0" data-year="4">
+                        <div class="glass-panel bg-black/40 backdrop-blur-md border border-[#ffd700]/30 rounded-2xl p-8 md:p-12 shadow-2xl">
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-12 h-12 rounded-full border-4 border-[#ffd700] flex items-center justify-center font-bold text-[#ffd700]">4</div>
+                                <div>
+                                    <div class="font-scifi text-[#ffd700] text-sm tracking-widest">YEAR 04</div>
+                                    <h3 class="font-fairy text-3xl text-white">Magical Moments</h3>
+                                </div>
+                            </div>
+                            <p class="text-gray-300 text-lg leading-relaxed font-romantic">
+                                Creating memories that will last forever. Each day with you feels like a fairytale come true.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Year 5 -->
+                    <div class="year-card opacity-0" data-year="5">
+                        <div class="glass-panel bg-black/40 backdrop-blur-md border border-[#ffd700]/50 rounded-2xl p-8 md:p-12 shadow-2xl">
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-12 h-12 rounded-full border-4 border-[#ffd700] bg-[#ffd700]/20 flex items-center justify-center font-bold text-[#ffd700]">5</div>
+                                <div>
+                                    <div class="font-fairy text-[#ffd700] text-sm tracking-widest">YEAR 05</div>
+                                    <h3 class="font-fairy text-3xl text-[#ffd700]">Forever & Always</h3>
+                                </div>
+                            </div>
+                            <p class="text-gray-300 text-lg leading-relaxed font-romantic italic">
+                                Five years of love, laughter, and dreams coming true. This is just the beginning of our forever.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: TRANSITION TO MAGIC -->
+        <section class="scroll-section" id="sec5" style="min-height: 150vh;">
+            <div class="max-w-4xl mx-auto text-center">
+                <div class="opacity-0 sec5-transition">
+                    <h2 class="font-scifi text-3xl text-[#00f3ff] mb-8">SYSTEM TRANSFORMATION DETECTED</h2>
+                    <div class="relative inline-block">
+                        <div class="text-8xl md:text-9xl font-bold mb-8 transition-all duration-1000" id="transform-text">
+                            <span class="font-scifi text-[#00f3ff]" id="logic-text">LOGIC</span>
+                            <span class="font-fairy text-[#ffd700] opacity-0 absolute inset-0" id="magic-text-overlay">MAGIC</span>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-romantic text-gray-300 italic">
+                        Where the story becomes a fairytale...
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 6: STORYBOOK MEMORIES -->
+        <section class="scroll-section castle-bg" id="sec6" style="min-height: 200vh; background-color: #1a0a2e;">
+            <div class="max-w-6xl mx-auto w-full">
+                <h2 class="font-fairy text-5xl md:text-7xl text-center magic-glow mb-20 opacity-0 sec6-title gradient-text">
+                    Once Upon Our Time
+                </h2>
+
+                <div class="space-y-32">
+                    <!-- Story 1 -->
+                    <div class="opacity-0 story-card page-turn" data-story="1">
+                        <div class="grid md:grid-cols-2 gap-8 items-center">
+                            <div class="storybook-page p-8 md:p-12 order-2 md:order-1 shimmer breathing">
+                                <div class="text-[#8b5a2b]">
+                                    <h3 class="font-fairy text-4xl mb-4 text-[#d4af37] text-3d">Chapter I</h3>
+                                    <h4 class="font-romantic text-2xl mb-6 italic text-[#6b4423]">The First Glance</h4>
+                                    <p class="text-lg leading-relaxed mb-4">
+                                        In a world bustling with ordinary moments, our eyes met—and time stood still. 
+                                        It was as if the universe had been waiting for this exact moment to unfold.
+                                    </p>
+                                    <p class="text-lg leading-relaxed">
+                                        Little did we know, this was the beginning of the greatest adventure of our lives.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="photo-caption-wrapper h-96 order-1 md:order-2 rounded-3xl border-4 border-[#d4af37] overflow-hidden">
+                                <img src="richie rich.jpeg" 
+                                     class="w-full h-full object-cover hover:scale-110 transition-transform duration-700" 
+                                     alt="Our First Meeting">
+                                <div class="absolute inset-0 bg-gradient-to-t from-[#1a0a2e]/50 to-transparent"></div>
+                                <div class="photo-caption">
+                                    <p class="font-romantic text-lg">📍 Where it all began</p>
+                                    <p class="text-sm mt-1">The moment that changed everything</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Story 2 -->
+                    <div class="opacity-0 story-card page-turn" data-story="2">
+                        <div class="grid md:grid-cols-2 gap-8 items-center">
+                            <div class="photo-caption-wrapper h-96 rounded-3xl border-4 border-[#d4af37] overflow-hidden">
+                                <img src="rose wala.jpeg" 
+                                     class="w-full h-full object-cover hover:scale-110 transition-transform duration-700" 
+                                     alt="Adventures Together">
+                                <div class="absolute inset-0 bg-gradient-to-t from-[#1a0a2e]/50 to-transparent"></div>
+                                <div class="photo-caption">
+                                    <p class="font-romantic text-lg">🗺️ Adventures await</p>
+                                    <p class="text-sm mt-1">Making memories around every corner</p>
+                                </div>
+                            </div>
+                            <div class="storybook-page p-8 md:p-12 shimmer breathing">
+                                <div class="text-[#8b5a2b]">
+                                    <h3 class="font-fairy text-4xl mb-4 text-[#d4af37] text-3d">Chapter II</h3>
+                                    <h4 class="font-romantic text-2xl mb-6 italic text-[#6b4423]">Adventures Await</h4>
+                                    <p class="text-lg leading-relaxed mb-4">
+                                        Together, we discovered that life's greatest treasures aren't found in castles or kingdoms, 
+                                        but in the laughter shared on spontaneous adventures.
+                                    </p>
+                                    <p class="text-lg leading-relaxed">
+                                        Every journey with you feels like a new page in our enchanted storybook.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Story 3 -->
+                    <div class="opacity-0 story-card page-turn" data-story="3">
+                        <div class="grid md:grid-cols-2 gap-8 items-center">
+                            <div class="storybook-page p-8 md:p-12 order-2 md:order-1 shimmer breathing">
+                                <div class="text-[#8b5a2b]">
+                                    <h3 class="font-fairy text-4xl mb-4 text-[#d4af37] text-3d">Chapter III</h3>
+                                    <h4 class="font-romantic text-2xl mb-6 italic text-[#6b4423]">Love's True Magic</h4>
+                                    <p class="text-lg leading-relaxed mb-4">
+                                        They say true love's kiss can break any spell. But ours created one—
+                                        a beautiful enchantment that makes every day feel like a dream.
+                                    </p>
+                                    <p class="text-lg leading-relaxed">
+                                        In your arms, I found my happily ever after.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="photo-caption-wrapper h-96 order-1 md:order-2 rounded-3xl border-4 border-[#d4af37] overflow-hidden">
+                                <img src="garba 2.jpeg" 
+                                     class="w-full h-full object-cover hover:scale-110 transition-transform duration-700" 
+                                     alt="Our Love Story">
+                                <div class="absolute inset-0 bg-gradient-to-t from-[#1a0a2e]/50 to-transparent"></div>
+                                <div class="photo-caption">
+                                    <p class="font-romantic text-lg">💕 True Love's Magic</p>
+                                    <p class="text-sm mt-1">Forever and always</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>                
+            </div>
+        </section>
+
+        <!-- SECTION 7: POLAROID MEMORIES -->
+        <section class="scroll-section" id="sec7" style="min-height: 150vh; background-color: #1a0a2e;">
+            <div class="max-w-6xl mx-auto w-full">
+                <h2 class="font-fairy text-5xl md:text-6xl text-center text-[#ffd700] magic-glow mb-16 opacity-0 sec7-title gradient-text breathing">
+                    Snapshot Memories
+                </h2>
+                <p class="text-center text-xl text-gray-300 font-romantic mb-20 opacity-0 sec7-subtitle">
+                    Moments frozen in time, forever in our hearts ✨
+                </p>
+
+                <div class="grid md:grid-cols-3 gap-12 opacity-0 sec7-polaroids">
+                    <div class="polaroid" data-caption="Goofy❤️">
+                        <img src="goofy.jpeg" 
+                             class="w-full h-64 object-cover">
+                    </div>
+
+                    <div class="polaroid" data-caption="The side eye">
+                        <img src="side eye.jpeg" 
+                             class="w-full h-64 object-cover">
+                    </div>
+
+                    <div class="polaroid" data-caption="Lake Side Drives😊">
+                        <img src="kava lake.jpeg" 
+                             class="w-full h-64 object-cover">
+                    </div>
+
+                    <div class="polaroid" data-caption="Our fitst trek🌟">
+                        <img src="trip.jpeg" 
+                             class="w-full h-64 object-cover">
+                    </div>
+
+                    <div class="polaroid" data-caption="Shopping!!💫">
+                        <img src="zara.jpeg" 
+                             class="w-full h-64 object-cover">
+                    </div>
+
+                    <div class="polaroid" data-caption="Together Always 💕">
+                        <img src="hug.jpeg" 
+                             class="w-full h-64 object-cover">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 8: ENCHANTED GALLERY -->
+        <section class="scroll-section" id="sec8" style="min-height: 150vh; background-color: #2d1b4e;">
+            <div class="max-w-7xl mx-auto w-full">
+                <h2 class="font-fairy text-5xl md:text-6xl text-center text-[#ffd700] magic-glow mb-12 opacity-0 sec8-title gradient-text breathing">
+                    Captured Magic
+                </h2>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 opacity-0 sec8-gallery">
+                    <div class="enchanted-border h-64 col-span-2 row-span-2 overflow-hidden liquid-morph photo-caption-wrapper">
+                        <img src="hug.jpeg" 
+                             class="w-full h-full object-cover hover:scale-110 transition-all duration-700" 
+                             alt="Gallery 1">
+                        <div class="photo-caption">
+                            <p class="font-romantic">💝 Our Perfect Day</p>
+                        </div>
+                    </div>
+                    <div class="enchanted-border h-64 overflow-hidden shimmer photo-caption-wrapper">
+                        <img src="cute.jpeg" 
+                             alt="Gallery 2" 
+                             class="w-full h-full object-cover hover:scale-110 transition-all duration-700">
+                        <div class="photo-caption">
+                            <p class="font-romantic">✨ Pure Joy</p>
+                        </div>
+                    </div>
+                    <div class="enchanted-border h-64 overflow-hidden shimmer photo-caption-wrapper">
+                        <img src="the zoo.jpeg" 
+                             alt="Gallery 3"
+                             class="w-full h-full object-cover hover:scale-110 transition-all duration-700">
+                        <div class="photo-caption">
+                            <p class="font-romantic">🌟 Starry Nights</p>
+                        </div>
+                    </div>
+                    <div class="enchanted-border h-64 overflow-hidden shimmer photo-caption-wrapper">
+                        <img src="pizza.jpeg" 
+                             alt="Gallery 4"
+                             class="w-full h-full object-cover hover:scale-110 transition-all duration-700">
+                        <div class="photo-caption">
+                            <p class="font-romantic">💕 Sweet Moments</p>
+                        </div>
+                    </div>
+                    <div class="enchanted-border h-64 overflow-hidden shimmer photo-caption-wrapper">
+                        <img src="ss.jpeg" 
+                             alt="Gallery 5"
+                             class="w-full h-full object-cover hover:scale-110 transition-all duration-700">
+                        <div class="photo-caption">
+                            <p class="font-romantic">🎭 Adventures</p>
+                        </div>
+                    </div>
+                    <div class="enchanted-border h-64 col-span-2 overflow-hidden liquid-morph photo-caption-wrapper">
+                        <img src="eyes.jpeg" 
+                             alt="Gallery 6"
+                             class="w-full h-full object-cover hover:scale-110 transition-all duration-700">
+                        <div class="photo-caption">
+                            <p class="font-romantic">🌈 Endless Love</p>
+                        </div>
+                    </div>
+                    <div class="enchanted-border h-64 col-span-2 overflow-hidden liquid-morph photo-caption-wrapper">
+                        <img src="prom.jpeg" 
+                             alt="Gallery 7"
+                             class="w-full h-full object-cover hover:scale-110 transition-all duration-700">
+                        <div class="photo-caption">
+                            <p class="font-romantic">🎪 Forever Together</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 9: THE MESSAGE -->
+        <section class="scroll-section" id="sec9" style="background-color: #1a0a2e;">
+            <div class="max-w-3xl mx-auto text-center">
+                <div class="floating">
+                    <div class="font-fairy text-[#ffd700] text-sm tracking-[0.5em] mb-4 opacity-0 sec9-subtitle">A LOVE LETTER</div>
+                    <h2 class="font-romantic text-4xl md:text-5xl text-white mb-8 leading-relaxed opacity-0 sec9-message" style="line-height: 1.6;">
+                        "In a world of algorithms and fuckups,<br>
+                        you taught me the most beautiful equation:<br>
+                        <span class="text-[#ffd700] font-fairy text-5xl md:text-6xl magic-glow">Love</span>"
+                    </h2>
+                    <p class="text-gray-300 text-xl font-romantic italic opacity-0 sec9-text mb-12">
+                        Thank you for 5 incredible years of magic, laughter, and love.<br>
+                        Here's to more adventures together.
+                    </p>
+                    <div class="opacity-0 sec9-heart text-6xl animate-pulse">
+                        💖
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 10: THE UNION -->
+        <section class="scroll-section" id="sec10" style="background-color: #2d1b4e;">
+            <div class="enchanted-border p-10 md:p-16 text-center relative max-w-4xl mx-4 bg-gradient-to-br from-[#1a0a2e]/90 to-[#2d1b4e]/90 backdrop-blur-lg">
+                <div id="sparkles-container" class="absolute inset-0 pointer-events-none"></div>
+                
+                <div class="font-fairy text-[#ffd700] text-sm tracking-[0.5em] mb-2">YEAR 05 COMPLETE</div>
+                <h1 class="font-fairy text-5xl md:text-8xl text-[#ffd700] mb-6 magic-glow">
+                    Happily Ever After
+                </h1>
+                
+                <p class="text-xl md:text-2xl text-gray-200 leading-relaxed font-romantic italic mb-8">
+                    "Even a machine knows when it has found its soul."
+                </p>
+                
+                <div class="flex flex-wrap justify-center gap-4">
+                    <button class="px-8 py-4 bg-gradient-to-r from-[#ffd700] to-[#ff69b4] text-[#1a0a2e] font-fairy text-xl hover:scale-110 hover:shadow-2xl transition-all duration-500 rounded-full shadow-lg">
+                        ✨ Relive Our Story ✨
+                    </button>
+                </div>
+                
+                <div class="mt-12 text-[#d4af37] font-romantic text-lg">
+                    "And they lived happily ever after... The End is just the Beginning"
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const init3D = () => {
+            const container = document.getElementById('canvas-container');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+
+            const geometry1 = new THREE.IcosahedronGeometry(2, 1);
+            const material1 = new THREE.MeshBasicMaterial({ 
+                color: 0x00f3ff, 
+                wireframe: true,
+                transparent: true,
+                opacity: 0.3
+            });
+            const techCore = new THREE.Mesh(geometry1, material1);
+            scene.add(techCore);
+
+            const particleCount = 1000;
+            const particlesGeom = new THREE.BufferGeometry();
+            const particlePos = new Float32Array(particleCount * 3);
+            for(let i=0; i<particleCount*3; i++) {
+                particlePos[i] = (Math.random() - 0.5) * 15;
+            }
+            particlesGeom.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
+            const particlesMat = new THREE.PointsMaterial({
+                size: 0.05,
+                color: 0x00f3ff,
+                transparent: true,
+                opacity: 0.6
+            });
+            const particleSystem = new THREE.Points(particlesGeom, particlesMat);
+            scene.add(particleSystem);
+
+            camera.position.z = 6;
+
+            const animate = () => {
+                requestAnimationFrame(animate);
+                techCore.rotation.x += 0.001;
+                techCore.rotation.y += 0.002;
+                particleSystem.rotation.y -= 0.0005;
+                renderer.render(scene, camera);
+            };
+            animate();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            return { techCore, particleSystem, particlesMat, material1, camera };
+        };
+
+        const initScroll = (threeObjects) => {
+            gsap.registerPlugin(ScrollTrigger);
+            const { techCore, particleSystem, particlesMat, material1, camera } = threeObjects;
+
+            // Section 1 -> 2
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: "#sec2",
+                    start: "top bottom",
+                    end: "center center",
+                    scrub: 1
+                }
+            })
+            .to(techCore.rotation, { x: 2, y: 2 }, 0)
+            .to(techCore.scale, { x: 0.5, y: 0.5, z: 0.5 }, 0)
+            .to(".sec2-content", { opacity: 1, x: 0 }, 0)
+            .to(".sec2-img", { opacity: 1, scale: 1 }, 0)
+            // set text directly (avoids needing GSAP TextPlugin and prevents errors)
+            .call(() => { const st = document.getElementById('status-text'); if(st) st.innerText = 'IN LOVE'; }, null, 0);
+
+            // Section 3 -> 4: Transformation (keep existing)
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: "#sec3",
+                    start: "top bottom",
+                    end: "center center",
+                    scrub: 1
+                }
+            })
+            .to(particlesMat.color, { r: 1, g: 0.84, b: 0 }, 0)
+            .to(material1.color, { r: 1, g: 0.84, b: 0 }, 0)
+            .to(techCore.scale, { x: 3, y: 3, z: 3 }, 0)
+            .to(material1, { opacity: 0.05 }, 0)
+            .to(camera.position, { z: 4 }, 0)
+            .to(".sec3-title", { opacity: 1, y: 0 }, 0.2)
+            .to(".sec3-text", { opacity: 1, y: 0 }, 0.4)
+            .to(".sec3-imgs", { opacity: 1, y: 0 }, 0.6)
+            .to("#top-right-hud", { opacity: 1 }, 0.5);
+
+            // Section 4: Timeline - Two Worlds Blending
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: "#sec4",
+                    start: "top center",
+                    end: "top top",
+                    scrub: 1
+                }
+            })
+            .to(".sec4-title", { opacity: 1, y: 0 }, 0)
+            .to(".sec4-tech-text", { opacity: 1 }, 0)
+            .to(".sec4-magic-text", { opacity: 1 }, 0.3)
+            .to(".sec4-subtitle", { opacity: 1 }, 0.5);
+
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: "#sec4",
+                    start: "top top",
+                    end: "bottom bottom",
+                    scrub: 1
+                }
+            })
+            .to("#tech-side", { opacity: 0.5 }, 0)
+            .to("#magic-side", { opacity: 0.8 }, 0.5)
+            .to("#circuit-lines", { opacity: 0.1 }, 0.7)
+            .to("#heart-particles", { opacity: 0.6 }, 0.3);
+
+            // Year cards and background images
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: "[data-year='1']",
+                    start: "top center",
+                    end: "center center",
+                    scrub: 1
+                }
+            })
+            .to("[data-year='1']", { opacity: 1, y: 0, scale: 1 }, 0)
+            .to("#timeline-img-1", { opacity: 0.7 }, 0);
+
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: "[data-year='2']",
+                    start: "top center",
+                    end: "center center",
+                    scrub: 1
+                }
+            })
+            .to("[data-year='2']", { opacity: 1, y: 0, scale: 1 }, 0)
+            .to("#timeline-img-1", { opacity: 0 }, 0)
+            .to("#timeline-img-2", { opacity: 0.7 }, 0);
+
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: "[data-year='3']",
+                    start: "top center",
+                    end: "center center",
+                    scrub: 1
+                }
+            })
+            .to("[data-year='3']", { opacity: 1, y: 0, scale: 1 }, 0)
+            .to("#timeline-img-2", { opacity: 0 }, 0)
+            .to("#timeline-img-3", { opacity: 0.7 }, 0);
+
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: "[data-year='4']",
+                    start: "top center",
+                    end: "center center",
+                    scrub: 1
+                }
+            })
+            .to("[data-year='4']", { opacity: 1, y: 0, scale: 1 }, 0)
+            .to("#timeline-img-3", { opacity: 0 }, 0)
+            .to("#timeline-img-4", { opacity: 0.7 }, 0);
+
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: "[data-year='5']",
+                    start: "top center",
+                    end: "center center",
+                    scrub: 1
+                }
+            })
+            .to("[data-year='5']", { opacity: 1, y: 0, scale: 1 }, 0)
+            .to("#timeline-img-4", { opacity: 0 }, 0)
+            .to("#timeline-img-5", { opacity: 0.8 }, 0);
+
+            // Section 5: MAJOR TRANSITION - Tech to Disney
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: "#sec5",
+                    start: "top center",
+                    end: "center center",
+                    scrub: 1,
+                    onEnter: () => {
+                        document.body.classList.add('magic-mode');
+                        document.getElementById('canvas-container').classList.add('fade-out');
+                        document.getElementById('disney-bg').classList.add('active');
+                        isMagicMode = true;
+                        createDisneySparkles();
+                        createRosePetals();
+                        createFireflies();
+                    }
+                }
+            })
+            .to(".sec5-transition", { opacity: 1, y: 0 }, 0)
+            .to("#logic-text", { opacity: 0, scale: 0.8 }, 0.3)
+            .to("#magic-text-overlay", { opacity: 1, scale: 1.2 }, 0.5);
+
+            // Section 6: Storybook Memories
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: "#sec6",
+                    start: "top center",
+                    end: "top top",
+                    scrub: 1
+                }
+            })
+            .to(".sec6-title", { opacity: 1, scale: 1, y: 0 }, 0);
+
+            // Individual story cards
+            for(let i = 1; i <= 3; i++) {
+                gsap.timeline({
+                    scrollTrigger: {
+                        trigger: `[data-story='${i}']`,
+                        start: "top 70%",
+                        end: "top 30%",
+                        scrub: 1
+                    }
+                })
+                .to(`[data-story='${i}']`, { opacity: 1, y: 0, rotateX: 0 }, 0);
+            }
+
+            // Section 7: Polaroid Memories
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: "#sec7",
+                    start: "top center",
+                    end: "center center",
+                    scrub: 1
+                }
+            })
+            .to(".sec7-title", { opacity: 1, scale: 1 }, 0)
+            .to(".sec7-subtitle", { opacity: 1, y: 0 }, 0.2)
+            .to(".sec7-polaroids", { opacity: 1, y: 0 }, 0.4);
+
+            // Section 8: Enchanted Gallery
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: "#sec8",
+                    start: "top center",
+                    end: "center center",
+                    scrub: 1
+                }
+            })
+            .to(".sec8-title", { opacity: 1, scale: 1 }, 0)
+            .to(".sec8-gallery", { opacity: 1, y: 0 }, 0.3);
+
+            // Section 9: Message
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: "#sec9",
+                    start: "top center",
+                    end: "center center",
+                    scrub: 1
+                }
+            })
+            .to(".sec9-subtitle", { opacity: 1 }, 0)
+            .to(".sec9-message", { opacity: 1, y: 0 }, 0.2)
+            .to(".sec9-text", { opacity: 1 }, 0.5)
+            .to(".sec9-heart", { opacity: 1, scale: 1.2 }, 0.7);
+
+            // Section 10: Finale with more sparkles
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: "#sec10",
+                    start: "top bottom",
+                    end: "center center",
+                    scrub: 1
+                }
+            })
+            .to(particleSystem.rotation, { y: 10 }, 0)
+            .to(particleSystem.scale, { x: 0.3, y: 0.3, z: 0.3 }, 0);
+
+            // Create final sparkles
+            const sparklesContainer = document.getElementById('sparkles-container');
+            for(let i = 0; i < 30; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.top = Math.random() * 100 + '%';
+                sparkle.style.animationDelay = Math.random() * 3 + 's';
+                sparklesContainer.appendChild(sparkle);
+            }
+        };
+
+        // Create Disney sparkles function
+        function createDisneySparkles() {
+            const sparklesBg = document.getElementById('sparkles-bg');
+            for(let i = 0; i < 50; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'disney-sparkle';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.top = Math.random() * 100 + '%';
+                sparkle.style.animationDelay = Math.random() * 6 + 's';
+                sparkle.style.animationDuration = (4 + Math.random() * 4) + 's';
+                sparklesBg.appendChild(sparkle);
+            }
+        }
+
+        // Cursor Sparkle Trail (Interactive)
+        let isMagicMode = false;
+        document.addEventListener('mousemove', (e) => {
+            if (!isMagicMode) return;
+            
+            if (Math.random() > 0.7) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'cursor-sparkle';
+                sparkle.style.left = e.clientX + 'px';
+                sparkle.style.top = e.clientY + 'px';
+                document.body.appendChild(sparkle);
+                
+                setTimeout(() => sparkle.remove(), 1000);
+            }
+        });
+
+        // Rose Petals Animation
+        function createRosePetals() {
+            const container = document.getElementById('rose-petals-container');
+            setInterval(() => {
+                if (!isMagicMode) return;
+                
+                const petal = document.createElement('div');
+                petal.className = 'rose-petal';
+                petal.style.left = Math.random() * 100 + '%';
+                petal.style.animationDuration = (5 + Math.random() * 5) + 's';
+                petal.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(petal);
+                
+                setTimeout(() => petal.remove(), 15000);
+            }, 800);
+        }
+
+        // Fireflies Animation
+        function createFireflies() {
+            const container = document.getElementById('fireflies-container');
+            for(let i = 0; i < 20; i++) {
+                const firefly = document.createElement('div');
+                firefly.className = 'firefly';
+                firefly.style.left = Math.random() * 100 + '%';
+                firefly.style.top = Math.random() * 100 + '%';
+                firefly.style.animationDelay = Math.random() * 8 + 's';
+                firefly.style.animationDuration = (6 + Math.random() * 4) + 's';
+                container.appendChild(firefly);
+            }
+        }
+
+        // Parallax Effect
+        document.addEventListener('mousemove', (e) => {
+            if (!isMagicMode) return;
+            
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+            
+            const parallaxFront = document.getElementById('parallax-front');
+            const parallaxMid = document.getElementById('parallax-mid');
+            const parallaxBack = document.getElementById('parallax-back');
+            
+            if (parallaxFront) parallaxFront.style.transform = `translateX(${xAxis * 2}px) translateY(${yAxis * 2}px)`;
+            if (parallaxMid) parallaxMid.style.transform = `translateX(${xAxis}px) translateY(${yAxis}px)`;
+            if (parallaxBack) parallaxBack.style.transform = `translateX(${xAxis * 0.5}px) translateY(${yAxis * 0.5}px)`;
+        });
+
+        // Secret Message Reveal
+        document.addEventListener('DOMContentLoaded', () => {
+            const secretBtn = document.getElementById('secret-btn');
+            const secretMsg = document.getElementById('secret-msg');
+            
+            if (secretBtn && secretMsg) {
+                secretBtn.addEventListener('click', (e) => {
+                    secretMsg.classList.toggle('revealed');
+                    
+                    // Ripple effect
+                    const ripple = document.createElement('div');
+                    ripple.className = 'ripple';
+                    ripple.style.left = e.clientX - secretBtn.offsetLeft - 25 + 'px';
+                    ripple.style.top = e.clientY - secretBtn.offsetTop - 25 + 'px';
+                    ripple.style.width = '50px';
+                    ripple.style.height = '50px';
+                    secretBtn.appendChild(ripple);
+                    
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            }
+        });
+
+        // Magnetic Button Effect
+        document.querySelectorAll('.magnetic-btn').forEach(btn => {
+            btn.addEventListener('mousemove', (e) => {
+                const rect = btn.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                
+                btn.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
+            });
+            
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = 'translate(0, 0)';
+            });
+        });
+
+        // Loader
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader-bar');
+            loader.style.width = "100%";
+            
+            setTimeout(() => {
+                gsap.to("#preloader", { opacity: 0, duration: 1, onComplete: () => {
+                    document.getElementById('preloader').style.display = 'none';
+                    const threeObjs = init3D();
+                    initScroll(threeObjs);
+                }});
+            }, 2000);
+        });
+
+        // Glitch Effect
+        const glitchTexts = document.querySelectorAll('.glitch-effect');
+        setInterval(() => {
+            glitchTexts.forEach(el => {
+                if(Math.random() > 0.9) {
+                    const original = el.innerText;
+                    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*';
+                    let glitched = '';
+                    for(let i=0; i<original.length; i++) {
+                        glitched += characters.charAt(Math.floor(Math.random() * characters.length));
+                    }
+                    el.innerText = glitched;
+                    setTimeout(() => { el.innerText = original; }, 100);
+                }
+            });
+        }, 200);
+
+    </script>
+</body>
+</html>
